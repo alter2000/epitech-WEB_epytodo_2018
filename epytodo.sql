@@ -1,0 +1,32 @@
+CREATE DATABASE IF NOT EXISTS epytodo;
+USE epytodo;
+
+DROP TABLE IF EXISTS user;
+CREATE TABLE user
+(
+	user_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	username VARCHAR(255) NOT NULL,
+	password VARCHAR(255) NOT NULL,
+	u_mail VARCHAR(255) NOT NULL,
+	u_pass VARCHAR(512) NOT NULL,
+	u_tasks INT,
+	u_tasks_completed INT
+);
+
+DROP TABLE IF EXISTS task;
+CREATE TABLE task
+(
+	task_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	title VARCHAR(255) NOT NULL,
+	begin TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	end TIMESTAMP DEFAULT 0,
+	t_description VARCHAR(2048),
+	t_status INT DEFAULT 0
+);
+
+DROP TABLE IF EXISTS user_has_task;
+CREATE TABLE user_has_task
+(
+	fk_user_id INT NOT NULL,
+	fk_task_id INT NOT NULL
+);
