@@ -7,7 +7,7 @@
 <body>
   <section class="todoapp">
     <header class="header">
-      <h1>Todos</h1>
+      <h1>Todos{% if username %} for {{ username }}{% endif %}</h1>
       <input class="new-todo" placeholder="What needs to be done?" autofocus="" onkeypress="addItem(event)">
     </header>
 
