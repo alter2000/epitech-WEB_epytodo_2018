@@ -1,42 +1,41 @@
 from flask import render_template, request, jsonify
 import json
 
-from app import app
-import controller as con
+from app import app, controller as con
 
 
 # index route, shows index.html view
-@app.route('/')
+@app.route('/', methods=('GET'))
 def index():
     return render_template('index.html')
 
 
-@app.route('/register', methods=['POST'])
+@app.route('/register', methods=('POST'))
 def user_register(name):
     return render_template('index.html', username=name)
 
 
-@app.route('/signin', methods=['POST'])
+@app.route('/signin', methods=('POST'))
 def user_sign_in(name):
     return render_template('index.html', username=name)
 
 
-@app.route('/signout', methods=['POST'])
+@app.route('/signout', methods=('POST'))
 def user_sign_out(name):
     return render_template('index.html', username=name)
 
 
-@app.route('/<name>', methods=['GET'])
+@app.route('/<name>', methods=('GET'))
 def user_show_user(name):
     return render_template('index.html', username=name)
 
 
-@app.route('/<name>/task', methods=['GET'])
+@app.route('/<name>/task', methods=('GET'))
 def user_show_tasks(name):
     return render_template('index.html', username=name)
 
 
-@app.route('/<name>/task/<task>', methods=['GET', 'POST'])
+@app.route('/<name>/task/<int:task>', methods=('POST'))
 def user_single(name, task):
     if request.method == 'GET':
         return jsonify({
@@ -49,13 +48,13 @@ def user_single(name, task):
             return render_template('index.html', username=name)
 
 
-@app.route('/<name>/task/add', methods=['POST'])
+@app.route('/<name>/task/add', methods=('POST'))
 def user_add(name):
     data = json.loads(request.data)  # load JSON data from request
     return jsonify(data)
 
 
-@app.route('/<name>/task/del/<task>', methods=['POST'])
+@app.route('/<name>/task/del/<int:task>', methods=('POST'))
 def user_del(name, task):
     return jsonify({
                     'uid': name,
