@@ -2,7 +2,6 @@ import sys
 import pymysql as pm
 import pm.err as pex
 from typing import Enum
-from datetime import datetime
 
 from app import app, cfg
 
