@@ -27,4 +27,4 @@ TASK_ID_ADD_RES = {'result': 'new task added'}
 
 TASK_ID_DEL_RES = {'result': 'task deleted'}
 
-DEBUG = True
+DEBUG = False

@@ -21,15 +21,18 @@ def index():
 
 @app.route('/register', methods=['POST'])
 def user_register():
-    if request.json is None or \
-            ('username' or 'password' not in request.json):
+    if request.json is None or (
+            'username' not in request.json or
+            'password' not in request.json):
         return jsonify(app.config['ERR_OTHER'])
     return jsonify(con.add_user(request.json))
 
 
 @app.route('/signin', methods=['POST'])
 def user_sign_in():
-    if request.json is None or ('username' or 'password' not in request.json):
+    if request.json is None or (
+            'username' not in request.json or
+            'password' not in request.json):
         return jsonify(app.config['SIGNIN_ERR'])
     return jsonify(con.signin_user(request.json))
 

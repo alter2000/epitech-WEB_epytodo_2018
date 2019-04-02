@@ -1,18 +1,14 @@
-import sys
-from flask import g
-from sqlalchemy import create_engine
 from enum import Enum
-from datetime import datetime
 
-from app import app, db
+from app import db
 
-engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'],
-                       encoding='utf8', echo=False)
+# engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'],
+#                        encoding='utf8', echo=False)
 
 
 class Task(db.Model):
     __table__ = db.Table('task', db.metadata, autoload=True,
-                         autoload_with=engine)
+                         autoload_with=db.engine)
 
     def __repr__(self):
         return ('<User id: {0} username: {1} password: {2}>' +
@@ -23,7 +19,7 @@ class Task(db.Model):
 
 class User(db.Model):
     __table__ = db.Table('user', db.metadata, autoload=True,
-                         autoload_with=engine)
+                         autoload_with=db.engine)
 
     def __repr__(self):
         return ('<User id: {0} username: {1} password: {2}>' +
@@ -61,17 +57,3 @@ class TodoItem:
         self._end = int(end)
         self._desc = str(description)
         self._status = TodoStatus(status)
-
-
-def get_db():
-    if 'db' not in g:
-        g.db = db.connect(host=app.config.DATABASE_HOST,
-                          user=app.config.DATABASE_USER,
-                          password=app.config.DATABASE_PASS,
-                          db=app.config.DATABASE_NAME)
-    try:
-        print('Database setup completed', file=sys.stderr)
-    except ValueError:
-        print('Database already exists.', file=sys.stderr)
-    finally:
-        connection.close()
