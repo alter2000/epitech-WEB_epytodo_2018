@@ -1,11 +1,35 @@
 import sys
-import pymysql as pm
-import pm.err as pex
-from typing import Enum
+from flask import g
+from sqlalchemy import create_engine
+from enum import Enum
+from datetime import datetime
 
-from app import app, cfg
+from app import app, db
 
-pm.get_client_info()
+engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'],
+                       encoding='utf8', echo=False)
+
+
+class Task(db.Model):
+    __table__ = db.Table('task', db.metadata, autoload=True,
+                         autoload_with=engine)
+
+    def __repr__(self):
+        return ('<User id: {0} username: {1} password: {2}>' +
+                'mail: {3} tasks: {4} completed: {5}').format(
+                self.user_id, self.username, self.password, self.u_mail,
+                self.u_tasks, self.u_tasks_completed)
+
+
+class User(db.Model):
+    __table__ = db.Table('user', db.metadata, autoload=True,
+                         autoload_with=engine)
+
+    def __repr__(self):
+        return ('<User id: {0} username: {1} password: {2}>' +
+                'mail: {3} tasks: {4} completed: {5}').format(
+                self.user_id, self.username, self.password, self.u_mail,
+                self.u_tasks, self.u_tasks_completed)
 
 
 class TodoStatus(Enum):
@@ -31,31 +55,23 @@ class TodoStatus(Enum):
 class TodoItem:
     def __init__(self, task_id: int, title: str, begin: int, end: int,
                  description: str, status: int):
-        _t_id = int(task_id)
-        _title = str(title)
-        _begin = int(begin)
-        _end = int(end)
-        _desc = str(description)
-        _status = TodoStatus(status)
+        self._t_id = int(task_id)
+        self._title = str(title)
+        self._begin = int(begin)
+        self._end = int(end)
+        self._desc = str(description)
+        self._status = TodoStatus(status)
 
 
-def dbSetup():
-    connection = pm.connect(host=cfg.DATABASE_HOST,
-                            user=cfg.DATABASE_USER,
-                            password=cfg.DATABASE_PASS,
-                            db=cfg.DATABASE_NAME)
+def get_db():
+    if 'db' not in g:
+        g.db = db.connect(host=app.config.DATABASE_HOST,
+                          user=app.config.DATABASE_USER,
+                          password=app.config.DATABASE_PASS,
+                          db=app.config.DATABASE_NAME)
     try:
-        pm.db(TODO_DB).table_create('todos').run(connection)
         print('Database setup completed', file=sys.stderr)
-    except pex:
+    except ValueError:
         print('Database already exists.', file=sys.stderr)
     finally:
         connection.close()
-
-# open connection before each request
-@app.before_request
-def before_request():
-    try:
-        pm.connect(host=RDB_HOST, port=RDB_PORT, db=TODO_DB)
-    except RqlDriverError:
-        abort(503, "Database connection could be established.")

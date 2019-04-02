@@ -1,62 +1,67 @@
-from flask import render_template, request, jsonify
-import json
+import sys
+from flask import render_template, request, jsonify, make_response
 
 from app import app, controller as con
 
 
-# index route, shows index.html view
+@app.errorhandler(404)
+def not_found(error):
+    return make_response(jsonify(app.config['ERR_OTHER']), 404)
+
+
+@app.errorhandler(400)
+def wrong_request(error):
+    return make_response(jsonify({'error': 'wrong request'}), 400)
+
+
 @app.route('/', methods=['GET'])
 def index():
     return render_template('index.html')
 
 
 @app.route('/register', methods=['POST'])
-def user_register(name):
-    return render_template('index.html', username=name)
+def user_register():
+    if request.json is None or \
+            ('username' or 'password' not in request.json):
+        return jsonify(app.config['ERR_OTHER'])
+    return jsonify(con.add_user(request.json))
 
 
 @app.route('/signin', methods=['POST'])
-def user_sign_in(name):
-    return render_template('index.html', username=name)
+def user_sign_in():
+    if request.json is None or ('username' or 'password' not in request.json):
+        return jsonify(app.config['SIGNIN_ERR'])
+    return jsonify(con.signin_user(request.json))
 
 
 @app.route('/signout', methods=['POST'])
-def user_sign_out(name):
-    return render_template('index.html', username=name)
+def user_sign_out():
+    return jsonify(con.signout_user(request.json))
 
 
 @app.route('/<name>', methods=['GET'])
 def user_show_user(name):
-    return render_template('index.html', username=name)
+    return jsonify(con.get_user(request.json))
 
 
 @app.route('/<name>/task', methods=['GET'])
 def user_show_tasks(name):
-    return render_template('index.html', username=name)
+    return jsonify(con.get_user_tasks(request.json))
 
 
-@app.route('/<name>/task/<int:task>', methods=['POST'])
+@app.route('/<name>/task/<int:task>', methods=['GET'])
 def user_single(name, task):
     if request.method == 'GET':
-        return jsonify({
-                'id': task,
-                'completed': json.loads(request.data).get('completed', 0)
-                })
+        return jsonify(con.add_user_task(request.json))
     elif request.method == 'POST':
-        if con.login_valid(request.form['username'],
-                           request.form['password']):
-            return render_template('index.html', username=name)
+        return jsonify(con.login_valid(request.json))
 
 
 @app.route('/<name>/task/add', methods=['POST'])
 def user_add(name):
-    data = json.loads(request.data)  # load JSON data from request
-    return jsonify(data)
+    return jsonify(con.add_user(request.json))
 
 
 @app.route('/<name>/task/del/<int:task>', methods=['POST'])
 def user_del(name, task):
-    return jsonify({
-                    'uid': name,
-                    'tid': task,
-                   })
+    return jsonify(con.del_user_task(request.json))

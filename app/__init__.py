@@ -1,8 +1,10 @@
 from flask import Flask
-from config import Config
+from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
-cfg = Config()
-app.config.from_object(cfg)
+app.config.from_pyfile('../config.py')
+
+db = SQLAlchemy(app)
+print(repr(db))
 
 from app import views
