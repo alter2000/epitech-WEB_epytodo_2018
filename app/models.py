@@ -1,4 +1,5 @@
 from enum import Enum
+from flask import Session
 
 from app import db
 

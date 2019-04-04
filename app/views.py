@@ -1,4 +1,3 @@
-import sys
 from flask import render_template, request, jsonify, make_response
 
 from app import app, controller as con
@@ -19,8 +18,10 @@ def index():
     return render_template('index.html')
 
 
-@app.route('/register', methods=['POST'])
+@app.route('/register', methods=['POST', 'GET'])
 def user_register():
+    if request.method == 'GET':
+        return jsonify(app.config['ERR_OTHER'])
     if request.json is None or (
             'username' not in request.json or
             'password' not in request.json):
@@ -28,17 +29,21 @@ def user_register():
     return jsonify(con.add_user(request.json))
 
 
-@app.route('/signin', methods=['POST'])
+@app.route('/signin', methods=['POST', 'GET'])
 def user_sign_in():
+    if request.method == 'GET':
+        return jsonify(app.config['ERR_OTHER'])
     if request.json is None or (
             'username' not in request.json or
             'password' not in request.json):
-        return jsonify(app.config['SIGNIN_ERR'])
+        return jsonify(app.config['ERR_OTHER'])
     return jsonify(con.signin_user(request.json))
 
 
-@app.route('/signout', methods=['POST'])
+@app.route('/signout', methods=['POST', 'GET'])
 def user_sign_out():
+    if request.method == 'GET':
+        return jsonify(app.config['ERR_OTHER'])
     return jsonify(con.signout_user(request.json))
 
 

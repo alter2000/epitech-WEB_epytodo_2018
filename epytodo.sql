@@ -29,8 +29,6 @@ CREATE TABLE user_has_task
 	id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	fk_user_id INT NOT NULL,
 	fk_task_id INT NOT NULL
-	KEY `fk_user_id` (`fk_user_id`),
-	KEY `fk_task_id` (`fk_task_id`)
 );
 
 ALTER TABLE user_has_task

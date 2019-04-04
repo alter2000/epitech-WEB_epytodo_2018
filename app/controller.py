@@ -23,32 +23,32 @@ tasks = [
 
 
 def add_user(req):
-    return {'fname': 'add_user'}
+    return {'fname': 'add_user', 'data': req}
 
 
 def signin_user(req):
-    return {'fname': 'signin_user'}
+    return {'fname': 'signin_user', 'data': req}
 
 
 def signout_user(req):
-    return {'fname': 'signout_user'}
+    return {'fname': 'signout_user', 'data': req}
 
 
 def get_user(req):
-    return {'fname': 'get_user'}
+    return {'fname': 'get_user', 'data': req}
 
 
 def get_user_tasks(req):
-    return {'fname': 'get_user_tasks'}
+    return {'fname': 'get_user_tasks', 'data': req}
 
 
 def del_user_task(req):
-    return {'fname': 'del_user_task'}
+    return {'fname': 'del_user_task', 'data': req}
 
 
 def add_user_task(req):
-    return {'fname': 'add_user_task'}
+    return {'fname': 'add_user_task', 'data': req}
 
 
 def login_valid(req):
-    return {'fname': 'login_valid'}
+    return {'fname': 'login_valid', 'data': req}
