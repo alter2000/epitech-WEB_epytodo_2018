@@ -1,5 +1,7 @@
 from enum import Enum
 from flask import Session
+import flask_sqlalchemy
+from sqlalchemy.orm.session import Session as SQLSession
 
 from app import db
 
@@ -23,10 +25,13 @@ class User(db.Model):
                          autoload_with=db.engine)
 
     def __repr__(self):
-        return ('<User id: {0} username: {1} password: {2}>' +
-                'mail: {3} tasks: {4} completed: {5}').format(
-                self.user_id, self.username, self.password, self.u_mail,
-                self.u_tasks, self.u_tasks_completed)
+        return ('<User(id={0}, username={1}, password={2}, ' +
+                'mail={3}, tasks={4}, completed={5})>').format(
+                self.user_id, self.username, self.password,
+                self.u_mail, self.u_tasks, self.u_tasks_completed)
+
+    def add(self, name=None, passwd=None, **kwargs):
+        pass
 
 
 class TodoStatus(Enum):
@@ -34,6 +39,18 @@ class TodoStatus(Enum):
     INPROGRESS = 1
     ABANDON = 2
     DONE = 3
+
+    def __int__(self):
+        if self == TodoStatus.TODO:
+            return (self.TODO)
+        elif self == TodoStatus.INPROGRESS:
+            return (self.INPROGRESS)
+        elif self == TodoStatus.ABANDON:
+            return (self.ABANDON)
+        elif self == TodoStatus.DONE:
+            return (self.DONE)
+        else:
+            raise ValueError("enumeration failed: value out of range")
 
     def __str__(self):
         if self == TodoStatus.TODO:
@@ -45,8 +62,7 @@ class TodoStatus(Enum):
         elif self == TodoStatus.DONE:
             return "done"
         else:
-            raise ValueError(
-                    "enumeration invariant failed: value out of range")
+            raise ValueError("enumeration failed: value out of range")
 
 
 class TodoItem:

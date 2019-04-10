@@ -10,7 +10,7 @@ def not_found(error):
 
 @app.errorhandler(400)
 def wrong_request(error):
-    return make_response(jsonify({'error': 'wrong request'}), 400)
+    return make_response(jsonify(app.config['ERR_OTHER']), 400)
 
 
 @app.route('/', methods=['GET'])
