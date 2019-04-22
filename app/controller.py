@@ -1,7 +1,10 @@
-from app import models as m
+from app.models import User, Task
+from app import auth
+from flask import g
 
 
 # testing shiz
+from app.models import TodoStatus
 tasks = [
     {
         'id': 1,
@@ -9,7 +12,7 @@ tasks = [
         'description': u'Milk, Cheese, Pizza, Fruit, Tylenol',
         'begin': '2019-01-01',
         'end': '2019-01-02',
-        'status': m.TodoStatus.DONE,
+        'status': TodoStatus.DONE,
     },
     {
         'id': 2,
@@ -17,14 +20,27 @@ tasks = [
         'description': u'Need to find a good Python tutorial on the web',
         'begin': '2019-02-01',
         'end': '2019-02-02',
-        'status': m.TodoStatus.TODO,
+        'status': TodoStatus.TODO,
     }
 ]
 
 
+@auth.verify_password
+def login_valid(username, password):
+    user = User.query.filter_by(username=username).first()
+    if not user or not user.check_password(password):
+        return False
+    g.user = user
+    return True
+
+
 def add_user(req):
-    
-    return {'fname': 'add_user', 'data': req}
+    u = User()
+    u.get(req)
+    try:
+        return u.add()
+    except ValueError as e:
+        return {'fname': 'add_user', 'err': e, 'data': req}
 
 
 def signin_user(req):
@@ -40,7 +56,12 @@ def get_user(req):
 
 
 def get_user_tasks(req):
-    return {'fname': 'get_user_tasks', 'data': req}
+    tl = Task.query.all()
+    return {'result': {'tasks': [{t.task_id: {'title': str(t.title),
+                                              'begin': str(t.begin),
+                                              'end': str(t.end),
+                                              'status': str(t.status)}}
+                                 for t in tl]}}
 
 
 def del_user_task(req):
@@ -48,8 +69,9 @@ def del_user_task(req):
 
 
 def add_user_task(req):
-    return {'fname': 'add_user_task', 'data': req}
-
-
-def login_valid(req):
-    return {'fname': 'login_valid', 'data': req}
+    t = Task()
+    t.get(req)
+    try:
+        return t.add()
+    except ValueError as e:
+        return {'fname': 'add_user_task', 'err': e, 'data': req}
