@@ -1,14 +1,22 @@
-from flask import (render_template,
+from flask import (abort,
+                   render_template,
                    request,
                    jsonify,
-                   make_response)
+                   make_response,
+                   g)
 
-from app import app, auth, controller as con
+from app import app, controller as con, users
+from app.models import User, Task
 
 
 @app.errorhandler(404)
 def not_found(error):
     return make_response(jsonify(app.config['ERR_OTHER']), 404)
+
+
+@app.errorhandler(401)
+def nologin(error):
+    return make_response(jsonify(app.config['ERR_NOLOGIN']), 401)
 
 
 @app.errorhandler(400)
@@ -24,7 +32,7 @@ def index():
 @app.route('/register', methods=['POST', 'GET'])
 def user_register():
     if request.method == 'GET':
-        return jsonify(app.config['ERR_OTHER'])
+        abort(401)
     if request.json is None or (
             'username' not in request.json or
             'password' not in request.json):
@@ -35,7 +43,7 @@ def user_register():
 @app.route('/signin', methods=['POST', 'GET'])
 def user_sign_in():
     if request.method == 'GET':
-        return jsonify(app.config['ERR_OTHER'])
+        abort(401)
     if request.json is None or (
             'username' not in request.json or
             'password' not in request.json):
@@ -44,41 +52,47 @@ def user_sign_in():
 
 
 @app.route('/signout', methods=['POST', 'GET'])
-@auth.login_required
+@con.login_required
 def user_sign_out():
-    if request.method == 'GET':
-        return jsonify(app.config['ERR_OTHER'])
-    return jsonify(con.signout_user(request.json))
+    # if request.method == 'GET':
+    #     abort(401)
+    for u in users:
+        if u.username == request.json['username']:
+            del u
+    return jsonify(app.config['SIGNOUT_RES'])
 
 
 @app.route('/<name>', methods=['GET'])
-@auth.login_required
+@con.login_required
 def user_show_user(name):
-    return jsonify(con.get_user(request.json))
+    u = [u for u in users if name == u.username][0]
+    res = u.to_json()
+
+    from sys import stderr
+    print(res, file=stderr)
+
+    return jsonify({'result': res})
 
 
 @app.route('/<name>/task', methods=['GET'])
-@auth.login_required
+@con.login_required
 def user_show_tasks(name):
     return jsonify(con.get_user_tasks(request.json))
 
 
 @app.route('/<name>/task/<int:task>', methods=['GET'])
-@auth.login_required
+@con.login_required
 def user_single(name, task):
-    if request.method == 'GET':
-        return jsonify(con.add_user_task(request.json))
-    elif request.method == 'POST':
-        return jsonify(con.login_valid(request.json))
+    return jsonify(con.add_user_task(request.json))
 
 
 @app.route('/<name>/task/add', methods=['POST'])
-@auth.login_required
+@con.login_required
 def user_add(name):
     return jsonify(con.add_user(request.json))
 
 
 @app.route('/<name>/task/del/<int:task>', methods=['POST'])
-@auth.login_required
+@con.login_required
 def user_del(name, task):
     return jsonify(con.del_user_task(request.json))

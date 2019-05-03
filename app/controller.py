@@ -1,7 +1,8 @@
-from app.models import User, Task
-from app import auth
-from flask import g
+from functools import wraps
+from flask import g, request, abort
 
+from app import app, users
+from app.models import User, Task
 
 # testing shiz
 from app.models import TodoStatus
@@ -25,13 +26,14 @@ tasks = [
 ]
 
 
-@auth.verify_password
-def login_valid(username, password):
-    user = User.query.filter_by(username=username).first()
-    if not user or not user.check_password(password):
-        return False
-    g.user = user
-    return True
+def login_required(f):
+    @wraps(f)
+    def decf(*args, **kwargs):
+        name = getattr(kwargs, 'name', None)
+        if not name or name not in (u.username for u in users):
+            abort(401)
+        return f(*args, **kwargs)
+    return decf
 
 
 def add_user(req):
@@ -44,15 +46,12 @@ def add_user(req):
 
 
 def signin_user(req):
-    return {'fname': 'signin_user', 'data': req}
-
-
-def signout_user(req):
-    return {'fname': 'signout_user', 'data': req}
-
-
-def get_user(req):
-    return {'fname': 'get_user', 'data': req}
+    user = User.query.filter_by(username=req['username']).first()
+    if not user or not user.check_password(req['password']):
+        return app.config['SIGNIN_ERR']
+    if user not in users:
+        users.append(user)
+    return app.config['SIGNIN_RES']
 
 
 def get_user_tasks(req):
