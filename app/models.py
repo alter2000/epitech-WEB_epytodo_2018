@@ -1,7 +1,6 @@
-from sys import stderr
 from enum import Enum
 
-from flask_login import UserMixin
+from flask_login import UserMixin, current_user
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import (generate_password_hash,
                                check_password_hash)
@@ -69,6 +68,7 @@ class Task(db.Model):
         self.end = req.get('end')
         self.t_description = req.get('t_description')
         self.status = req.get('status')
+        self.user_own = User.query.filter_by(username=current_user).first().id
 
     def add(self):
         if self.title is None:
@@ -144,9 +144,8 @@ class User(UserMixin, db.Model):
         try:
             self.password = generate_password_hash(password)
             db.session.commit()
-        except Exception as e:
+        except Exception:
             db.session.rollback()
-            print(e, file=stderr)
 
     def get_from(self, req):
         u = self.query.all()

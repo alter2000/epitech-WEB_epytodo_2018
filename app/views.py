@@ -63,12 +63,7 @@ def user_sign_out():
 @app.route('/<name>', methods=['GET'])
 @login_required
 def user_show_user(name):
-    res = current_user.to_json()
-
-    from sys import stderr
-    print(res, file=stderr)
-
-    return jsonify({'result': res})
+    return jsonify({'result': current_user.to_json()})
 
 
 @app.route('/<name>/task', methods=['GET'])
