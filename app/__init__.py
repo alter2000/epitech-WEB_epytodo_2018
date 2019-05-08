@@ -1,13 +1,11 @@
-from flask import Flask, g
-from flask_sqlalchemy import SQLAlchemy
+from flask import Flask
+from flask_login import LoginManager
 
 app = Flask(__name__)
 app.config.from_pyfile('../config.py')
+app.secret_key = app.config['SECRET_KEY']
 
-
-db = SQLAlchemy(app)
-db.Model.metadata.reflect(db.engine)
-
-users = []
+login = LoginManager(app)
+login.login_view = 'user_sign_in'
 
 from . import views
