@@ -1,11 +1,18 @@
+from sys import stderr
 from enum import Enum
+
+from flask_login import UserMixin
+from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import (generate_password_hash,
                                check_password_hash)
 
-from app import app, db
+from app import app, login
 
 # engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'],
 #                        encoding='utf8', echo=False)
+
+db = SQLAlchemy(app)
+db.Model.metadata.reflect(db.engine)
 
 
 class TodoStatus(Enum):
@@ -43,10 +50,10 @@ class Task(db.Model):
     __table__ = db.Model.metadata.tables['task']
 
     def __repr__(self):
-        return ('<Task(id="{0}", title="{1}", begin="{2}", ' +
-                'end="{3}", desc="{4}", status="{5}")>').format(
-                self.task_id, self.title, self.begin, self.end,
-                self.t_description, self.status)
+        return ('<Task(task_id="{0}", title="{1}", begin="{2}", end="{3}" ' +
+                't_description="{4}", status="{5}", user_own="{6}")>') \
+                .format(self.task_id, self.title, self.begin, self.end,
+                        self.t_description, self.status, self.user_own)
 
     def to_json(self):
         return {'task_id': self.task_id,
@@ -81,14 +88,19 @@ class Task(db.Model):
             return app.config['TASK_ID_ADD_RES']
 
 
-class User(db.Model):
+@login.user_loader
+def load_user(id):
+    return User.query.get(int(id))
+
+
+class User(UserMixin, db.Model):
     __table__ = db.Model.metadata.tables['user']
 
     def __repr__(self):
-        return ('<User(id={0}, name={1}, pass={2}, ' +
-                'mail={3}, tasks={4}, compl={5})>').format(
-                self.user_id, self.username, self.password[:12],
-                self.u_mail, self.u_tasks, self.u_tasks_completed)
+        return ('<User(user_id="{0}", username="{1}", password="{2}", ' +
+                'u_mail="{3}", u_tasks="{4}", u_tasks_completed="{5}")>') \
+                .format(self.user_id, self.username, self.password[:12],
+                        self.u_mail, self.u_tasks, self.u_tasks_completed)
 
     def to_json(self):
         return {'user_id': self.user_id,
@@ -100,10 +112,13 @@ class User(db.Model):
 
     def get(self, req):
         self.username = req.get('username')
-        self.password = generate_password_hash(req.get('password'))
+        self.set_password(req.get('password'))
         self.u_mail = req.get('u_mail')
         self.u_tasks = req.get('u_tasks')
         self.u_tasks_completed = req.get('u_tasks_completed')
+
+    def get_id(self):
+        return self.user_id
 
     def add(self):
         if self.username is None:
@@ -123,8 +138,16 @@ class User(db.Model):
             return app.config['REGISTER_RES']
 
     def check_password(self, password):
-        if check_password_hash(self.password, password):
-            self.login()
-            return app.config['SIGNIN_RES']
-        else:
-            return app.config['SIGNIN_ERR']
+        return check_password_hash(self.password, password)
+
+    def set_password(self, password):
+        try:
+            self.password = generate_password_hash(password)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            print(e, file=stderr)
+
+    def get_from(self, req):
+        u = self.query.all()
+        return u.tasks

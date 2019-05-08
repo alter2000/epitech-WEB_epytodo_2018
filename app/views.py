@@ -3,10 +3,10 @@ from flask import (abort,
                    request,
                    jsonify,
                    make_response,
-                   g)
+                   )
+from flask_login import logout_user, login_required, current_user
 
-from app import app, controller as con, users
-from app.models import User, Task
+from app import app, controller as con
 
 
 @app.errorhandler(404)
@@ -16,7 +16,7 @@ def not_found(error):
 
 @app.errorhandler(401)
 def nologin(error):
-    return make_response(jsonify(app.config['ERR_NOLOGIN']), 401)
+    return make_response(jsonify(app.config['ERR_OTHER']), 401)
 
 
 @app.errorhandler(400)
@@ -52,21 +52,18 @@ def user_sign_in():
 
 
 @app.route('/signout', methods=['POST', 'GET'])
-@con.login_required
+@login_required
 def user_sign_out():
-    # if request.method == 'GET':
-    #     abort(401)
-    for u in users:
-        if u.username == request.json['username']:
-            del u
+    if request.method == 'GET':
+        abort(401)
+    logout_user()
     return jsonify(app.config['SIGNOUT_RES'])
 
 
 @app.route('/<name>', methods=['GET'])
-@con.login_required
+@login_required
 def user_show_user(name):
-    u = [u for u in users if name == u.username][0]
-    res = u.to_json()
+    res = current_user.to_json()
 
     from sys import stderr
     print(res, file=stderr)
@@ -75,24 +72,24 @@ def user_show_user(name):
 
 
 @app.route('/<name>/task', methods=['GET'])
-@con.login_required
+@login_required
 def user_show_tasks(name):
     return jsonify(con.get_user_tasks(request.json))
 
 
 @app.route('/<name>/task/<int:task>', methods=['GET'])
-@con.login_required
+@login_required
 def user_single(name, task):
     return jsonify(con.add_user_task(request.json))
 
 
 @app.route('/<name>/task/add', methods=['POST'])
-@con.login_required
+@login_required
 def user_add(name):
     return jsonify(con.add_user(request.json))
 
 
 @app.route('/<name>/task/del/<int:task>', methods=['POST'])
-@con.login_required
+@login_required
 def user_del(name, task):
     return jsonify(con.del_user_task(request.json))
